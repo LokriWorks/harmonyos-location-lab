@@ -1,0 +1,66 @@
+name: Windows EXE release
+on:
+  push:
+    branches: [main]
+    paths: [app_version.py, .github/workflows/release.yml]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: windows-release
+  cancel-in-progress: false
+jobs:
+  package:
+    runs-on: windows-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PYTHONUTF8: '1'
+      PYTHONIOENCODING: utf-8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          architecture: x64
+      - name: Read version and check existing release
+        id: version
+        shell: pwsh
+        run: |
+          $version = [regex]::Match((Get-Content app_version.py -Raw), 'VERSION = "([^"]+)"').Groups[1].Value
+          if (-not $version) { throw 'Missing version' }
+          "RELEASE_TAG=v$version" >> $env:GITHUB_ENV
+          $PSNativeCommandUseErrorActionPreference = $false
+          gh release view "v$version" --json tagName *> $null
+          "build=$($LASTEXITCODE -ne 0 -or $env:GITHUB_EVENT_NAME -eq 'workflow_dispatch')".ToLower() >> $env:GITHUB_OUTPUT
+          $global:LASTEXITCODE = 0
+      - name: Unit tests
+        if: steps.version.outputs.build == 'true'
+        run: python -m unittest discover -s tests -v
+      - name: Install build tools
+        if: steps.version.outputs.build == 'true'
+        run: python -m pip install -r requirements-build.txt
+      - name: Build self-contained Windows EXE
+        if: steps.version.outputs.build == 'true'
+        shell: pwsh
+        run: ./scripts/build-windows.ps1
+      - name: Verify EXE without Python on PATH
+        if: steps.version.outputs.build == 'true'
+        shell: pwsh
+        run: ./scripts/smoke-windows.ps1
+      - name: Publish EXE, licenses and checksum
+        if: steps.version.outputs.build == 'true'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $assets = @(Get-ChildItem dist -File | Where-Object { $_.Extension -in '.exe', '.zip' })
+          $lines = $assets | ForEach-Object { "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower())  $($_.Name)" }
+          $lines | Set-Content dist/SHA256SUMS.txt -Encoding ascii
+          $files = @($assets.FullName) + @((Resolve-Path dist/SHA256SUMS.txt).Path)
+          $PSNativeCommandUseErrorActionPreference = $false
+          gh release view "$env:RELEASE_TAG" --json tagName *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload "$env:RELEASE_TAG" @files --clobber
+          } else {
+            gh release create "$env:RELEASE_TAG" --target "$env:GITHUB_SHA" --title "����λ��ʵ���� $env:RELEASE_TAG �� Windows ͼ�ν���" --notes-file "docs/releases/$env:RELEASE_TAG.md" @files
+          }
+          if ($LASTEXITCODE -ne 0) { throw 'Release publication failed' }

@@ -1,6 +1,7 @@
 import math
 from pathlib import Path
 import tempfile
+import threading
 import unittest
 from unittest.mock import patch
 import location_lab as lab
@@ -25,6 +26,36 @@ class FakeHdc:
 
 
 class LocationTests(unittest.TestCase):
+    def test_cancel_before_start_does_not_touch_device(self):
+        hdc, cancel = FakeHdc(), threading.Event()
+        cancel.set()
+        self.assertEqual(lab.run_session(hdc, [POINT], cancel=cancel), 0)
+        self.assertEqual(hdc.calls, [])
+
+    def test_cancel_during_session_stops_refill_and_restores(self):
+        hdc, clock, cancel = FakeHdc(), FakeClock(), threading.Event()
+        def sleep(value):
+            clock.sleep(value)
+            cancel.set()
+        batches = lab.run_session(hdc, [POINT], duration=3600, loop=True, clock=clock.now,
+                                  sleeper=sleep, cancel=cancel, report=lambda s: None)
+        self.assertEqual(batches, 1)
+        self.assertLess(clock.value, 1)
+        self.assertIn('disable-location-mock', hdc.calls[-2])
+        self.assertEqual(hdc.calls[-1][1], 'rm')
+
+    def test_cancel_while_uploading_never_submits_but_restores(self):
+        cancel = threading.Event()
+        class UploadCancel(FakeHdc):
+            def run(self, *args):
+                answer = super().run(*args)
+                if args[:2] == ('file', 'send'): cancel.set()
+                return answer
+        hdc = UploadCancel()
+        self.assertEqual(lab.run_session(hdc, [POINT], loop=True, cancel=cancel, report=lambda s: None), 0)
+        self.assertFalse(any('set-mocked-locations' in call for call in hdc.calls))
+        self.assertIn('disable-location-mock', hdc.calls[-2])
+
     def test_invalid_input_never_touches_device(self):
         for point in [(math.nan, 1), (91, 1), (1, math.inf), (1, 181)]:
             hdc = FakeHdc()
@@ -80,10 +111,10 @@ class LocationTests(unittest.TestCase):
         with patch.object(lab.shutil,'which',return_value='hdc'):
             hdc=lab.Hdc()
             with patch.object(hdc,'run',return_value=output):
-                with self.assertRaisesRegex(lab.LabError,'多个设备'):hdc.select()
+                with self.assertRaisesRegex(lab.LabError,'����豸'):hdc.select()
             hdc.device='OTHER-DEVICE'
             with patch.object(hdc,'run',return_value=output):
-                with self.assertRaisesRegex(lab.LabError,'尚未授权'):hdc.select()
+                with self.assertRaisesRegex(lab.LabError,'��δ��Ȩ'):hdc.select()
 
     def test_listing_can_report_unauthorized_devices(self):
         from subprocess import CompletedProcess

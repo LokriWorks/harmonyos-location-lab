@@ -8,3 +8,6 @@ preview.gpx
 private/
 *.exe
 local-settings.json
+build/
+dist/
+*.spec
