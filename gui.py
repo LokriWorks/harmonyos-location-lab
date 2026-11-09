@@ -45,15 +45,15 @@ def session_options(mode, latitude, longitude, gpx, duration, interval, loop):
         if not 1 <= duration <= 3600 or not 1 <= interval <= 60:
             raise ValueError()
     except (ValueError, TypeError):
-        raise LabError('ʱ�������� 1�C3600 �룬��������� 1�C60 ���������') from None
+        raise LabError('时长请输入 1–3600 秒，间隔请输入 1–60 秒的整数。') from None
     if mode == 'hold':
         try:
             points = [validate_point(float(latitude), float(longitude))]
         except (ValueError, TypeError):
-            raise LabError('����д��Ч�� WGS84 ��γ�����֡�') from None
+            raise LabError('请填写有效的 WGS84 经纬度数字。') from None
     else:
         if not gpx:
-            raise LabError('����ѡ�� GPX �ļ���')
+            raise LabError('请先选择 GPX 文件。')
         points = load_gpx(gpx)
     return dict(points=points, duration=duration, interval=interval, loop=mode == 'hold' or bool(loop))
 
@@ -67,7 +67,7 @@ class App:
         self.devices = {}
         self.session_target = None
         self.last_error = None
-        root.title(f'����λ��ʵ���� �� {VERSION}')
+        root.title(f'鸿蒙位置实验室 · {VERSION}')
         root.geometry('800x740')
         root.minsize(720, 680)
         style = ttk.Style(root)
@@ -80,76 +80,76 @@ class App:
         base = ttk.Frame(root, padding=24)
         base.pack(fill='both', expand=True)
         base.columnconfigure(0, weight=1)
-        ttk.Label(base, text='����λ��ʵ����', style='Title.TLabel').grid(sticky='w')
-        ttk.Label(base, text='�̶�λ�� / GPX �켣 �� ͨ�� USB ���������ֻ�').grid(sticky='w', pady=(3, 15))
+        ttk.Label(base, text='鸿蒙位置实验室', style='Title.TLabel').grid(sticky='w')
+        ttk.Label(base, text='固定位置 / GPX 轨迹 · 通过 USB 调试连接手机').grid(sticky='w', pady=(3, 15))
         self.hdc = tk.StringVar(value=discover_hdc())
         self.device = tk.StringVar()
-        connection = ttk.LabelFrame(base, text=' 1  ���ӹ������豸 ', padding=12)
+        connection = ttk.LabelFrame(base, text=' 1  连接工具与设备 ', padding=12)
         connection.grid(sticky='ew')
         connection.columnconfigure(1, weight=1)
-        ttk.Label(connection, text='HDC ·��').grid(row=0, column=0, padx=(0, 10))
+        ttk.Label(connection, text='HDC 路径').grid(row=0, column=0, padx=(0, 10))
         self.hdc_entry = ttk.Entry(connection, textvariable=self.hdc)
         self.hdc_entry.grid(row=0, column=1, sticky='ew')
-        self.browse_hdc = ttk.Button(connection, text='ѡ�� HDC', command=self.choose_hdc)
+        self.browse_hdc = ttk.Button(connection, text='选择 HDC', command=self.choose_hdc)
         self.browse_hdc.grid(row=0, column=2, padx=(8, 0))
-        ttk.Label(connection, text='�ֻ��豸').grid(row=1, column=0, pady=(10, 0))
+        ttk.Label(connection, text='手机设备').grid(row=1, column=0, pady=(10, 0))
         self.device_box = ttk.Combobox(connection, textvariable=self.device, state='readonly')
         self.device_box.grid(row=1, column=1, sticky='ew', pady=(10, 0))
-        self.scan_button = ttk.Button(connection, text='����豸', command=self.scan)
+        self.scan_button = ttk.Button(connection, text='检测设备', command=self.scan)
         self.scan_button.grid(row=1, column=2, padx=(8, 0), pady=(10, 0))
-        ttk.Label(connection, text='HDC ���汾����ַ�����ӹٷ��������߻�ȡ��������ͬĿ¼�� DLL��', wraplength=670).grid(row=2, column=0, columnspan=3, sticky='w', pady=(10, 0))
+        ttk.Label(connection, text='HDC 不随本程序分发。请从官方开发工具获取，并保留同目录的 DLL。', wraplength=670).grid(row=2, column=0, columnspan=3, sticky='w', pady=(10, 0))
 
-        settings = ttk.LabelFrame(base, text=' 2  ѡ��������� ', padding=12)
+        settings = ttk.LabelFrame(base, text=' 2  选择测试内容 ', padding=12)
         settings.grid(sticky='ew', pady=(14, 0))
         settings.columnconfigure(0, weight=1)
         self.tabs = ttk.Notebook(settings)
         self.tabs.grid(sticky='ew')
         fixed, route = ttk.Frame(self.tabs, padding=12), ttk.Frame(self.tabs, padding=12)
-        self.tabs.add(fixed, text='�̶�λ��')
-        self.tabs.add(route, text='GPX �켣')
+        self.tabs.add(fixed, text='固定位置')
+        self.tabs.add(route, text='GPX 轨迹')
         self.latitude = tk.StringVar(value='48.8582599')
         self.longitude = tk.StringVar(value='2.2945006')
-        ttk.Label(fixed, text='γ��').grid(row=0, column=0)
+        ttk.Label(fixed, text='纬度').grid(row=0, column=0)
         self.lat_entry = ttk.Entry(fixed, textvariable=self.latitude, width=22)
         self.lat_entry.grid(row=0, column=1, padx=(8, 20))
-        ttk.Label(fixed, text='����').grid(row=0, column=2)
+        ttk.Label(fixed, text='经度').grid(row=0, column=2)
         self.lon_entry = ttk.Entry(fixed, textvariable=self.longitude, width=22)
         self.lon_entry.grid(row=0, column=3, padx=(8, 0))
-        ttk.Label(fixed, text='WGS84 ���ꣻĬ���ǰ��谣�ƶ����������رꡣ').grid(row=1, column=0, columnspan=4, sticky='w', pady=(10, 0))
+        ttk.Label(fixed, text='WGS84 坐标；默认是巴黎埃菲尔铁塔公开地标。').grid(row=1, column=0, columnspan=4, sticky='w', pady=(10, 0))
         self.gpx = tk.StringVar(value=str(resource('examples/eiffel.gpx')))
         route.columnconfigure(0, weight=1)
         self.gpx_entry = ttk.Entry(route, textvariable=self.gpx)
         self.gpx_entry.grid(row=0, column=0, sticky='ew')
-        self.gpx_button = ttk.Button(route, text='���� GPX', command=self.choose_gpx)
+        self.gpx_button = ttk.Button(route, text='导入 GPX', command=self.choose_gpx)
         self.gpx_button.grid(row=0, column=1, padx=(8, 0))
         self.loop = tk.BooleanVar(value=False)
-        self.loop_box = ttk.Checkbutton(route, text='��ĩβ��ѭ����������ʱ�����ƣ�', variable=self.loop)
+        self.loop_box = ttk.Checkbutton(route, text='到末尾后循环（仍受总时长限制）', variable=self.loop)
         self.loop_box.grid(row=1, column=0, columnspan=2, sticky='w', pady=(8, 0))
         timing = ttk.Frame(settings)
         timing.grid(sticky='ew', pady=(12, 0))
         self.duration, self.interval = tk.StringVar(value='60'), tk.StringVar(value='1')
-        ttk.Label(timing, text='��ʱ�����룩').pack(side='left')
+        ttk.Label(timing, text='总时长（秒）').pack(side='left')
         self.duration_entry = ttk.Entry(timing, textvariable=self.duration, width=9)
         self.duration_entry.pack(side='left', padx=(8, 18))
-        ttk.Label(timing, text='�������룩').pack(side='left')
+        ttk.Label(timing, text='点间隔（秒）').pack(side='left')
         self.interval_entry = ttk.Entry(timing, textvariable=self.interval, width=9)
         self.interval_entry.pack(side='left', padx=8)
-        ttk.Label(settings, text='�켣���������ţ�����ԭʼʱ������ٶ��ز�����Ӧ������������δ�ȶ���֤��', wraplength=670).grid(sticky='w', pady=(10, 0))
+        ttk.Label(settings, text='轨迹按点间隔播放，不按原始时间戳或速度重采样；应用连续跟随尚未稳定验证。', wraplength=670).grid(sticky='w', pady=(10, 0))
 
         buttons = ttk.Frame(base)
         buttons.grid(sticky='ew', pady=14)
-        self.start_button = ttk.Button(buttons, text='��ʼ����', command=self.start)
+        self.start_button = ttk.Button(buttons, text='开始测试', command=self.start)
         self.start_button.pack(side='left')
-        self.stop_button = ttk.Button(buttons, text='ֹͣ���ָ���λ', command=self.stop)
+        self.stop_button = ttk.Button(buttons, text='停止并恢复定位', command=self.stop)
         self.stop_button.pack(side='left', padx=10)
-        self.preview_button = ttk.Button(buttons, text='������ GPX', command=self.preview)
+        self.preview_button = ttk.Button(buttons, text='仅导出 GPX', command=self.preview)
         self.preview_button.pack(side='right')
-        self.status = tk.StringVar(value='���� �� ��ѡ�� HDC ������豸������ GPX ���������ֻ���')
+        self.status = tk.StringVar(value='就绪 · 先选择 HDC 并检测设备；导出 GPX 无需连接手机。')
         ttk.Label(base, textvariable=self.status, foreground='#175c76', wraplength=730).grid(sticky='ew')
         base.rowconfigure(6, weight=1)
         self.log = tk.Text(base, height=7, wrap='word', state='disabled', font=('Microsoft YaHei UI', 9), bg='white', relief='flat', padx=10, pady=8)
         self.log.grid(sticky='nsew', pady=(10, 8))
-        ttk.Label(base, text='ʵ��棺ϵͳ�����ύ��������Ӧ�ò��á������������ֻ���ȷ�϶�λ�ָ���', wraplength=730).grid(sticky='ew')
+        ttk.Label(base, text='实验版：系统接受提交，不代表应用采用。结束后请在手机上确认定位恢复。', wraplength=730).grid(sticky='ew')
         self.edit_controls = [self.hdc_entry, self.browse_hdc, self.scan_button, self.lat_entry, self.lon_entry,
                               self.gpx_entry, self.gpx_button, self.loop_box, self.duration_entry, self.interval_entry,
                               self.start_button, self.preview_button]
@@ -167,15 +167,15 @@ class App:
         self.status.set(str(error))
         self.write(str(error))
         if self.dialogs:
-            messagebox.showerror('����δ���', str(error), parent=self.root)
+            messagebox.showerror('操作未完成', str(error), parent=self.root)
 
     def choose_hdc(self):
-        path = filedialog.askopenfilename(title='ѡ��ٷ������е� hdc.exe', filetypes=[('HDC', 'hdc.exe')])
+        path = filedialog.askopenfilename(title='选择官方工具中的 hdc.exe', filetypes=[('HDC', 'hdc.exe')])
         if path:
             self.hdc.set(path)
 
     def choose_gpx(self):
-        path = filedialog.askopenfilename(title='���� GPX', filetypes=[('GPX', '*.gpx')])
+        path = filedialog.askopenfilename(title='导入 GPX', filetypes=[('GPX', '*.gpx')])
         if path:
             self.gpx.set(path)
 
@@ -186,7 +186,7 @@ class App:
     def connection(self):
         path = self.hdc.get().strip()
         if not path:
-            raise LabError('����ѡ��ٷ� HDC �����е� hdc.exe��')
+            raise LabError('请先选择官方 HDC 工具中的 hdc.exe。')
         device = self.devices.get(self.device.get())
         return path, device
 
@@ -200,7 +200,7 @@ class App:
             control.configure(state='disabled')
         self.device_box.configure(state='disabled')
         self.stop_button.configure(state='normal' if kind == 'session' else 'disabled')
-        self.status.set({'scan': '���ڼ���豸��', 'session': '�������Ӳ��ύ��', 'restore': '���ڹر�ģ�⡭'}[kind])
+        self.status.set({'scan': '正在检测设备…', 'session': '正在连接并提交…', 'restore': '正在关闭模拟…'}[kind])
         def work():
             try:
                 result = action()
@@ -239,7 +239,7 @@ class App:
                 file.parent.mkdir(parents=True, exist_ok=True)
                 file.write_text(json.dumps({'hdc': path}, ensure_ascii=False), encoding='utf-8')
             except OSError:
-                self.write('HDC ·��δ�ܱ��棻��Ӱ�챾�β��ԡ�')
+                self.write('HDC 路径未能保存；不影响本次测试。')
         def action():
             hdc = self.make_hdc(path, device)
             # Pin recovery to the device actually used, even when selection was automatic.
@@ -250,7 +250,7 @@ class App:
     def stop(self):
         if self.busy:
             self.cancel.set()
-            self.status.set('����ֹͣ���ָ����ȴ���ǰ HDC ����أ�����ʱ������Ҫ�ϳ�ʱ�䡭')
+            self.status.set('正在停止并恢复；等待当前 HDC 命令返回，断线时可能需要较长时间…')
             self.stop_button.configure(state='disabled')
             return
         try:
@@ -265,11 +265,11 @@ class App:
     def preview(self):
         try:
             options = self.options()
-            path = filedialog.asksaveasfilename(title='���� GPX���������ֻ���', defaultextension='.gpx', filetypes=[('GPX', '*.gpx')])
+            path = filedialog.asksaveasfilename(title='导出 GPX（不连接手机）', defaultextension='.gpx', filetypes=[('GPX', '*.gpx')])
             if path:
                 Path(path).write_bytes(gpx_bytes(options['points'], options['interval']))
-                self.status.set('GPX �ѵ�����û�������ֻ����޸Ķ�λ��')
-                self.write('�ѵ��� GPX��')
+                self.status.set('GPX 已导出；没有连接手机或修改定位。')
+                self.write('已导出 GPX。')
         except (LabError, OSError, ValueError, ET.ParseError) as exc:
             self.error(exc)
 
@@ -290,16 +290,16 @@ class App:
             self.stop_button.configure(state='normal')
             if kind == 'failed':
                 self.closing = False
-                self.error(value + ' �������ӣ���Ҫʱ�㡰ֹͣ���ָ���λ�����ԣ������ֻ���ȷ�ϡ�')
+                self.error(value + ' 请检查连接，必要时点“停止并恢复定位”重试，并在手机上确认。')
             else:
                 operation, result = value
                 if operation == 'scan':
-                    self.devices = {f"{d['id']} �� {d['status']}": d['id'] for d in result}
+                    self.devices = {f"{d['id']} · {d['status']}": d['id'] for d in result}
                     self.device_box.configure(values=list(self.devices))
                     self.device.set(next(iter(self.devices)) if len(self.devices) == 1 else '')
-                    self.status.set(f'���� {len(self.devices)} ̨�豸�����豸ʱ���ֶ�ѡ��' if result else 'δ�����豸������ USB ���ԡ������ߺ��ֻ���Ȩ��')
+                    self.status.set(f'发现 {len(self.devices)} 台设备；多设备时请手动选择。' if result else '未发现设备。请检查 USB 调试、数据线和手机授权。')
                 else:
-                    self.status.set('���ύ�ر�ģ�����������ֻ���ȷ��������λ��')
+                    self.status.set('已提交关闭模拟请求，请在手机上确认正常定位。')
                 if self.closing:
                     self.root.destroy()
                     return
@@ -309,7 +309,7 @@ class App:
         if self.busy:
             self.closing = True
             self.cancel.set()
-            self.status.set('���ڽ������������Իָ���λ�����Ժ�')
+            self.status.set('正在结束操作并尝试恢复定位，请稍候…')
             return
         self.root.destroy()
 
@@ -327,10 +327,12 @@ def self_test(root, app, output, calls):
             app.stop()
             stopped = True
         if stopped and not app.busy:
-            ok = app.last_error is None and any('disable-location-mock' in c for c in calls[-2:]) and calls[-1][1] == 'rm'
+            chinese_ok = root.title().startswith('\u9e3f\u8499\u4f4d\u7f6e\u5b9e\u9a8c\u5ba4')
+            ok = chinese_ok and app.last_error is None and any('disable-location-mock' in c for c in calls[-2:]) and calls[-1][1] == 'rm'
             Path(output).write_text(json.dumps({'ok': ok, 'version': VERSION, 'tk': str(tk.TkVersion),
                                                'frozen': bool(getattr(sys, 'frozen', False)), 'offline': True,
-                                               'cancelled': stopped, 'sample_points': len(load_gpx(resource('examples/eiffel.gpx')))}, indent=2), encoding='utf-8')
+                                               'cancelled': stopped, 'chinese_ok': chinese_ok,
+                                               'sample_points': len(load_gpx(resource('examples/eiffel.gpx')))}, indent=2), encoding='utf-8')
             root.destroy()
         elif time.monotonic() > deadline:
             app.cancel.set()
@@ -342,8 +344,8 @@ def self_test(root, app, output, calls):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='����λ��ʵ����ͼ�ν���')
-    parser.add_argument('--self-test', metavar='RESULT_JSON', help='���ߴ����֤����������ʵ�豸')
+    parser = argparse.ArgumentParser(description='鸿蒙位置实验室图形界面')
+    parser.add_argument('--self-test', metavar='RESULT_JSON', help='离线打包验证，不连接真实设备')
     args = parser.parse_args()
     root = tk.Tk()
     calls = []

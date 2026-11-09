@@ -61,6 +61,11 @@ jobs:
           if ($LASTEXITCODE -eq 0) {
             gh release upload "$env:RELEASE_TAG" @files --clobber
           } else {
-            gh release create "$env:RELEASE_TAG" --target "$env:GITHUB_SHA" --title "����λ��ʵ���� $env:RELEASE_TAG �� Windows ͼ�ν���" --notes-file "docs/releases/$env:RELEASE_TAG.md" @files
+            gh release create "$env:RELEASE_TAG" --target "$env:GITHUB_SHA" --title "鸿蒙位置实验室 $env:RELEASE_TAG · Windows 图形界面" --notes-file "docs/releases/$env:RELEASE_TAG.md" @files
           }
           if ($LASTEXITCODE -ne 0) { throw 'Release publication failed' }
+          # Repair the earlier release's damaged text and point users at the fixed EXE.
+          if ($env:RELEASE_TAG -eq 'v0.2.1') {
+            gh release edit v0.2.0 --title 'v0.2.0 - superseded by v0.2.1' --notes-file docs/releases/v0.2.0.md
+            if ($LASTEXITCODE -ne 0) { throw 'Earlier release note repair failed' }
+          }

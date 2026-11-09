@@ -23,5 +23,5 @@ class GuiOptionsTests(unittest.TestCase):
             self.assertFalse(route['loop'])
             self.assertEqual(route['points'], [(48, 2), (49, 3)])
             self.assertEqual(route['interval'], 2)
-        with self.assertRaisesRegex(LabError, 'ѡ�� GPX'):
+        with self.assertRaisesRegex(LabError, '选择 GPX'):
             session_options('play', '', '', '', '60', '1', False)

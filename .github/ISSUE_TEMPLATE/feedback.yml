@@ -1,24 +1,24 @@
-name: �������
-description: �����������⡢Ӧ�ù۲���ܽ���
-title: "[����] "
+name: 问题或建议
+description: 反馈工具问题、应用观察或功能建议
+title: "[反馈] "
 body:
   - type: input
     id: version
     attributes:
-      label: ���߰汾���ύ
+      label: 工具版本或提交
     validations:
       required: true
   - type: textarea
     id: environment
     attributes:
-      label: �豸�뻷��
-      description: ϵͳ�����汾��HDC ��΢�Ű汾���豸ϵ�п�ѡ������Ҫ�����ͺŻ��豸���кš�
+      label: 设备与环境
+      description: 系统完整版本、HDC 和微信版本；设备系列可选，不需要具体型号或设备序列号。
     validations:
       required: true
   - type: textarea
     id: result
     attributes:
-      label: ��������
-      description: ���֡�ϵͳ�����ύ����Ӧ�ö�ȡλ�á��͡�������λ�ָ�����ɾ��˽��������˺���Ϣ��
+      label: 操作与结果
+      description: 区分“系统接受提交”“应用读取位置”和“正常定位恢复”；删除私人坐标和账号信息。
     validations:
       required: true

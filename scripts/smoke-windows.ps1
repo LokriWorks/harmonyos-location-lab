@@ -17,7 +17,7 @@ try {
     }
     if ($process.ExitCode -ne 0 -or -not (Test-Path $result)) { throw 'EXE failed to start or produce a result' }
     $data = Get-Content $result -Raw | ConvertFrom-Json
-    if (-not ($data.ok -and $data.frozen -and $data.offline -and $data.cancelled -and $data.sample_points -gt 0)) { throw 'EXE self-test failed' }
+    if (-not ($data.ok -and $data.frozen -and $data.offline -and $data.cancelled -and $data.chinese_ok -and $data.sample_points -gt 0)) { throw 'EXE self-test failed' }
     Get-Content $result -Raw
 } finally {
     $env:PATH, $env:PYTHONPATH, $env:TCL_LIBRARY, $env:TK_LIBRARY = $savedPath, $savedPython, $savedTcl, $savedTk

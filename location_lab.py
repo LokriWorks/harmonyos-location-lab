@@ -25,24 +25,24 @@ class LabError(RuntimeError):
 
 def validate_point(latitude, longitude):
     if not math.isfinite(latitude) or not -90 <= latitude <= 90:
-        raise LabError('γ�ȱ����� -90 �� 90 ֮�䡣')
+        raise LabError('纬度必须在 -90 到 90 之间。')
     if not math.isfinite(longitude) or not -180 <= longitude <= 180:
-        raise LabError('���ȱ����� -180 �� 180 ֮�䡣')
+        raise LabError('经度必须在 -180 到 180 之间。')
     return float(latitude), float(longitude)
 
 
 def load_gpx(file):
     file = Path(file)
     if file.stat().st_size > 2 * 1024 * 1024:
-        raise LabError('GPX �ļ����ܳ��� 2 MB��')
+        raise LabError('GPX 文件不能超过 2 MB。')
     root = ET.parse(file).getroot()
     try:
         points = [validate_point(float(p.attrib['lat']), float(p.attrib['lon']))
                   for p in root.iter() if p.tag.split('}')[-1] in ('trkpt', 'rtept', 'wpt')]
     except (KeyError, ValueError) as exc:
-        raise LabError('GPX �е�λ�õ�ȱ����Ч�ľ�γ�ȡ�') from exc
+        raise LabError('GPX 中的位置点缺少有效的经纬度。') from exc
     if not points or len(points) > 10000:
-        raise LabError('GPX ��Ҫ���� 1�C10000 ��λ�õ㡣')
+        raise LabError('GPX 需要包含 1–10000 个位置点。')
     return points
 
 
@@ -71,7 +71,7 @@ class Hdc:
     def __init__(self, executable='hdc', device=None):
         self.executable = shutil.which(str(executable))
         if not self.executable:
-            raise LabError('�Ҳ��� HDC�������� PATH��HDC_PATH �� --hdc��')
+            raise LabError('找不到 HDC，请配置 PATH、HDC_PATH 或 --hdc。')
         self.device = device
 
     def run(self, *args):
@@ -80,12 +80,12 @@ class Hdc:
             done = subprocess.run(command, capture_output=True, text=True, encoding='utf-8',
                                   errors='replace', timeout=20, **({'creationflags': subprocess.CREATE_NO_WINDOW} if os.name == 'nt' else {}))
         except subprocess.TimeoutExpired as exc:
-            raise LabError('HDC ��Ӧ��ʱ���������ӣ��ָ����Ӻ��ִ�� stop��') from exc
+            raise LabError('HDC 响应超时，请检查连接；恢复连接后可执行 stop。') from exc
         output = (done.stdout + done.stderr).strip()
         listing = args[:2] == ('list', 'targets')
         markers = ('[fail]', 'error:', 'unknown command', 'not supported') + (() if listing else ('unauthorized',))
         if done.returncode or any(s in output.lower() for s in markers):
-            raise LabError('HDC δȷ�ϲ����ɹ���' + output[:500])
+            raise LabError('HDC 未确认操作成功：' + output[:500])
         return output
 
     def select(self):
@@ -97,23 +97,23 @@ class Hdc:
             self.device = device
         selected = [p for p in devices if p['id'] == device] if device else devices
         if not selected:
-            raise LabError('û���ҵ�Ŀ���豸���������ֻ������� USB ���ԡ�')
+            raise LabError('没有找到目标设备，请连接手机并开启 USB 调试。')
         if len(selected) != 1:
-            raise LabError('��⵽����豸������ --device ָ��Ŀ�ꡣ')
+            raise LabError('检测到多个设备，请用 --device 指定目标。')
         if selected[0]['status'].lower() != 'connected':
-            raise LabError('�ֻ���δ��Ȩ��������ֻ���������̨���Ե��ԡ�')
+            raise LabError('手机尚未授权，请解锁手机并允许这台电脑调试。')
         self.device = selected[0]['id']
 
 
 def run_session(hdc, points, duration=60, interval=1, loop=False, batch_size=30,
                 clock=time.monotonic, sleeper=time.sleep, report=print, cancel=None):
     if not points:
-        raise LabError('û��λ�õ㡣')
+        raise LabError('没有位置点。')
     points = [validate_point(*p) for p in points]
     if not isinstance(interval, int) or not 1 <= interval <= 60 or not 1 <= duration <= 3600:
-        raise LabError('�����ΧΪ 1�C60 �룬ʱ����ΧΪ 1�C3600 �롣')
+        raise LabError('间隔范围为 1–60 秒，时长范围为 1–3600 秒。')
     if not 2 <= batch_size <= 90:
-        raise LabError('ÿ������������ 2�C90 ֮�䡣')
+        raise LabError('每批点数必须在 2–90 之间。')
     if cancel is not None and cancel.is_set():
         return 0
     duration = min(duration, len(points)*interval) if not loop else duration
@@ -142,9 +142,9 @@ def run_session(hdc, points, duration=60, interval=1, loop=False, batch_size=30,
                     break
                 answer = hdc.run('shell', 'testhelper', 'set-mocked-locations', remote, str(interval))
                 if 'set mocked locations successfully' not in answer.lower():
-                    raise LabError('ϵͳû�з���Ԥ�ڵ�λ���ύȷ�ϡ�')
+                    raise LabError('系统没有返回预期的位置提交确认。')
                 batches += 1
-                report(f'�� {batches} ���ѱ�ϵͳ���ܣ�Ӧ���Ƿ��ȡ��Ҫ���ֻ���ȷ�ϡ�')
+                report(f'第 {batches} 批已被系统接受；应用是否读取需要在手机上确认。')
                 # Resubmit ahead of exhaustion. Slow USB calls can still cause gaps.
                 refill = elapsed + max(1, count-min(10, count-1))*interval
                 while clock()-start < min(duration, refill) and not (cancel is not None and cancel.is_set()):
@@ -160,28 +160,28 @@ def run_session(hdc, points, duration=60, interval=1, loop=False, batch_size=30,
         if attempted:
             try:
                 hdc.run('shell', 'testhelper', 'disable-location-mock')
-                report('ϵͳ�ѽ��ܹر�ģ�����������Ӧ����ȷ��������λ��')
+                report('系统已接受关闭模拟的请求，请在应用中确认正常定位。')
             except Exception:
-                failures.append('�ر�ģ��δ��ȷ�ϣ���ָ����Ӻ�ִ�� stop����Ҫʱ���ֻ��Ϲرյ��Բ�������λ��')
+                failures.append('关闭模拟未获确认：请恢复连接后执行 stop，必要时在手机上关闭调试并重启定位。')
         try:
             hdc.run('shell', 'rm', remote)
         except Exception:
-            failures.append('��ʱ GPX �ļ�δȷ��ɾ����')
+            failures.append('临时 GPX 文件未确认删除。')
         for failure in failures:
             report(failure)
         if failures and primary_error is None:
-            raise LabError('���Խ�������������������')
+            raise LabError('测试结束，但清理不完整。')
     return batches
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description='����λ��ģ���� GPX �켣���Թ��ߣ�ʵ��棩')
+    parser = argparse.ArgumentParser(description='鸿蒙位置模拟与 GPX 轨迹测试工具（实验版）')
     parser.add_argument('--version', action='version', version=f'HarmonyOS Location Lab {VERSION}')
     parser.add_argument('--hdc', default=os.getenv('HDC_PATH', 'hdc'))
-    parser.add_argument('--device', help='ָ���豸����д����ڼ�⵽һ̨�������豸ʱ�Զ�ѡ��')
+    parser.add_argument('--device', help='指定设备；不写则仅在检测到一台已连接设备时自动选择')
     sub = parser.add_subparsers(dest='command', required=True)
-    sub.add_parser('devices', help='�г��豸��������ģ��')
-    sub.add_parser('stop', help='�ر�ָ���豸��ģ�ⶨλ')
+    sub.add_parser('devices', help='列出设备，不开启模拟')
+    sub.add_parser('stop', help='关闭指定设备的模拟定位')
     for name in ('hold', 'play'):
         cmd = sub.add_parser(name)
         if name == 'hold':
@@ -192,16 +192,16 @@ def main(argv=None):
             cmd.add_argument('--loop', action='store_true')
         cmd.add_argument('--duration', type=int, default=60)
         cmd.add_argument('--interval', type=int, default=1)
-        cmd.add_argument('--dry-run', type=Path, metavar='OUTPUT_GPX', help='ֻ�������� GPX���������ֻ�')
+        cmd.add_argument('--dry-run', type=Path, metavar='OUTPUT_GPX', help='只生成样例 GPX，不连接手机')
     args = parser.parse_args(argv)
     try:
         if args.command in ('hold', 'play'):
             points = [validate_point(args.lat, args.lon)] if args.command == 'hold' else load_gpx(args.gpx)
             if not 1 <= args.interval <= 60 or not 1 <= args.duration <= 3600:
-                raise LabError('�����ΧΪ 1�C60 �룬ʱ����ΧΪ 1�C3600 �롣')
+                raise LabError('间隔范围为 1–60 秒，时长范围为 1–3600 秒。')
             if args.dry_run:
                 args.dry_run.write_bytes(gpx_bytes(points[:30], args.interval))
-                print('������ GPX��û�������ֻ����޸Ķ�λ��')
+                print('已生成 GPX，没有连接手机或修改定位。')
                 return 0
         hdc = Hdc(args.hdc, args.device)
         if args.command == 'devices':
@@ -210,12 +210,12 @@ def main(argv=None):
         hdc.select()
         if args.command == 'stop':
             hdc.run('shell', 'testhelper', 'disable-location-mock')
-            print('���ύ�ر�ģ�����������´�Ӧ��ȷ�϶�λ�ָ���')
+            print('已提交关闭模拟请求，请重新打开应用确认定位恢复。')
         else:
             run_session(hdc, points, args.duration, args.interval, args.command == 'hold' or args.loop)
         return 0
     except KeyboardInterrupt:
-        print('���жϲ��ԣ��������Ϸ��Ļָ������', file=sys.stderr)
+        print('已中断测试；请留意上方的恢复结果。', file=sys.stderr)
         return 130
     except (LabError, OSError, ValueError, ET.ParseError) as exc:
         print(str(exc), file=sys.stderr)

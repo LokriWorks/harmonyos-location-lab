@@ -111,10 +111,10 @@ class LocationTests(unittest.TestCase):
         with patch.object(lab.shutil,'which',return_value='hdc'):
             hdc=lab.Hdc()
             with patch.object(hdc,'run',return_value=output):
-                with self.assertRaisesRegex(lab.LabError,'����豸'):hdc.select()
+                with self.assertRaisesRegex(lab.LabError,'多个设备'):hdc.select()
             hdc.device='OTHER-DEVICE'
             with patch.object(hdc,'run',return_value=output):
-                with self.assertRaisesRegex(lab.LabError,'��δ��Ȩ'):hdc.select()
+                with self.assertRaisesRegex(lab.LabError,'尚未授权'):hdc.select()
 
     def test_listing_can_report_unauthorized_devices(self):
         from subprocess import CompletedProcess
