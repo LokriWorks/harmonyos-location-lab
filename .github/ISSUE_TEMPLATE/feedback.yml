@@ -1,0 +1,24 @@
+name: 问题或建议
+description: 反馈工具问题、应用观察或功能建议
+title: "[反馈] "
+body:
+  - type: input
+    id: version
+    attributes:
+      label: 工具版本或提交
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: 设备与环境
+      description: 机型、系统完整版本、HDC 和微信版本；不要填写设备序列号。
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: 操作与结果
+      description: 区分“系统接受提交”“应用读取位置”和“正常定位恢复”；删除私人坐标和账号信息。
+    validations:
+      required: true

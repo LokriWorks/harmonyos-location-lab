@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+preview.gpx
+*.log
+*.jpeg
+*.png
+private/
+*.exe
+local-settings.json

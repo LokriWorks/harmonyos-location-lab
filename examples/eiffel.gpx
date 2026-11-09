@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<gpx version="1.1" creator="HarmonyOSLocationLab" xmlns="http://www.topografix.com/GPX/1/1">
+  <trk><name>Public landmark example</name><trkseg>
+    <trkpt lat="48.8582599" lon="2.2945006" />
+    <trkpt lat="48.8582699" lon="2.2945006" />
+    <trkpt lat="48.8582799" lon="2.2945006" />
+    <trkpt lat="48.8582899" lon="2.2945006" />
+  </trkseg></trk>
+</gpx>
