@@ -1,10 +1,12 @@
-# 鸿蒙位置实验室
+# 鸿蒙手机微信虚拟定位工具（USB 连接版）
 
 [![Tests](https://github.com/zoe2026test/harmonyos-location-lab/actions/workflows/test.yml/badge.svg)](https://github.com/zoe2026test/harmonyos-location-lab/actions/workflows/test.yml)
 [![Download](https://img.shields.io/badge/Windows-Download_EXE-176b8c)](https://github.com/zoe2026test/harmonyos-location-lab/releases/latest)
 [![MIT](https://img.shields.io/badge/license-MIT-147d75)](LICENSE)
 
-在 Windows 电脑上设置坐标，通过 HDC 调试工具提交到连接的鸿蒙手机。支持固定位置和导入 GPX 轨迹。
+在 Windows 电脑上设置坐标，通过 USB 数据线和 HDC 调试工具，向鸿蒙手机提交模拟位置，用于测试微信“发送位置”地图预览读取的位置。
+
+**历史原型中，用户曾多次观察到微信“发送位置”预览显示模拟位置；沿 GPX 轨迹连续移动尚未完成真机验证。** 当前 EXE 只完成了无设备测试，不能把历史原型结果当作本版已经实测成功，也不代表所有微信定位场景均可用。
 
 **实际修改手机位置时，必须用支持数据传输的 USB 数据线连接手机和电脑，并在手机上开启 USB 调试、允许电脑调试。测试期间保持连接。** 当前图形界面教程使用 USB 连接；单独在电脑上打开 EXE 不会改变手机位置。
 
@@ -26,7 +28,7 @@
 
 1. 点击 [下载页 Releases](https://github.com/zoe2026test/harmonyos-location-lab/releases/latest)。
 2. 找到 **Assets**（下载文件列表），下载名称以 `.exe` 结尾的 Windows x64 文件，例如 `HarmonyOSLocationLab-v0.2.1-win-x64.exe`。
-3. 把它放到电脑上的一个文件夹里，双击打开“鸿蒙位置实验室”。首次启动可能稍慢。
+3. 把它放到电脑上的一个文件夹里，双击打开程序。v0.2.1 的窗口名仍显示“鸿蒙位置实验室”，首次启动可能稍慢。
 
 `Source code` 是开发者使用的源码，不是普通用户需要运行的程序。EXE 暂未数字签名，同页提供 `SHA256SUMS.txt` 校验值。
 
@@ -69,9 +71,11 @@ HDC 是电脑与鸿蒙手机通信的官方调试工具。**第一次需要准�
 
 如果提示关闭模拟未获确认：恢复 USB 连接、重新授权，再点 **停止并恢复定位** 重试，并在手机上确认。断线、电脑休眠或强行结束进程时，程序无法保证自动恢复；必要时在手机上关闭调试并重启定位。
 
-## 想测试一条轨迹怎么办？
+## GPX 轨迹提交（实验功能，尚未完成真机验证）
 
-先完成上面的连接与固定位置测试，再选择 **GPX 轨迹**：
+**我们尚未验证微信会持续沿 GPX 路线移动。** 已实现的是读取 GPX、生成并分批提交位置点；无设备测试只检查代码流程，不证明手机系统或微信会连续采用这些点。本节是供进一步验证的操作方法，不是已经实测成功的轨迹教程。
+
+如果要参与实验，先完成上面的连接与固定位置测试，再选择界面里的 **GPX 轨迹**：
 
 1. 点击 **导入 GPX**，选择已有的 `.gpx` 轨迹文件。界面默认附有一个公开示例。
 2. 设置 **点间隔**，表示每个位置点之间的秒数；**总时长** 是本次会话的上限。
