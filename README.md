@@ -1,10 +1,10 @@
 # 鸿蒙手机微信虚拟定位工具（USB 连接版）
 
 > [!NOTE]
-> **本项目持续更新中，将结合真机实践逐步完善功能与兼容性。** 已验证结果与实验功能会明确标注，欢迎通过 [Issues](https://github.com/zoe2026test/harmonyos-location-lab/issues/new/choose) 反馈测试情况、问题和建议。
+> **本项目持续更新中，将结合真机实践逐步完善功能与兼容性。** 已验证结果与实验功能会明确标注，欢迎通过 [Issues](https://github.com/LokriWorks/harmonyos-location-lab/issues/new/choose) 反馈测试情况、问题和建议。
 
-[![Tests](https://github.com/zoe2026test/harmonyos-location-lab/actions/workflows/test.yml/badge.svg)](https://github.com/zoe2026test/harmonyos-location-lab/actions/workflows/test.yml)
-[![Download](https://img.shields.io/badge/Windows-Download_EXE-176b8c)](https://github.com/zoe2026test/harmonyos-location-lab/releases/latest)
+[![Tests](https://github.com/LokriWorks/harmonyos-location-lab/actions/workflows/test.yml/badge.svg)](https://github.com/LokriWorks/harmonyos-location-lab/actions/workflows/test.yml)
+[![Download](https://img.shields.io/badge/Windows-Download_EXE-176b8c)](https://github.com/LokriWorks/harmonyos-location-lab/releases/latest)
 [![MIT](https://img.shields.io/badge/license-MIT-147d75)](LICENSE)
 
 在 Windows 电脑上设置坐标，通过 USB 数据线和 HDC 调试工具，向鸿蒙手机提交模拟位置，用于测试微信“发送位置”地图预览读取的位置。
@@ -13,7 +13,7 @@
 
 **实际修改手机位置时，必须用支持数据传输的 USB 数据线连接手机和电脑，并在手机上开启 USB 调试、允许电脑调试。测试期间保持连接。** 当前图形界面教程使用 USB 连接；单独在电脑上打开 EXE 不会改变手机位置。
 
-[下载最新 EXE](https://github.com/zoe2026test/harmonyos-location-lab/releases/latest) · [反馈问题或建议](https://github.com/zoe2026test/harmonyos-location-lab/issues/new/choose)
+[下载最新 EXE](https://github.com/LokriWorks/harmonyos-location-lab/releases/latest) · [反馈问题或建议](https://github.com/LokriWorks/harmonyos-location-lab/issues/new/choose)
 
 ## 第一次使用：先准备这些
 
@@ -29,7 +29,7 @@
 
 ## 第 1 步：下载并打开程序
 
-1. 点击 [下载页 Releases](https://github.com/zoe2026test/harmonyos-location-lab/releases/latest)。
+1. 点击 [下载页 Releases](https://github.com/LokriWorks/harmonyos-location-lab/releases/latest)。
 2. 找到 **Assets**（下载文件列表），下载名称以 `.exe` 结尾的 Windows x64 文件，例如 `HarmonyOSLocationLab-v0.2.1-win-x64.exe`。
 3. 把它放到电脑上的一个文件夹里，双击打开程序。v0.2.1 的窗口名仍显示“鸿蒙位置实验室”，首次启动可能稍慢。
 
@@ -116,7 +116,7 @@ HDC 是电脑与鸿蒙手机通信的官方调试工具。**第一次需要准�
 
 - [源码运行、命令行用法、测试和打包方法](docs/DEVELOPMENT.md)
 - [版本记录](CHANGELOG.md) · [真机回归记录方法](docs/TESTING.md)
-- [问题与建议入口](https://github.com/zoe2026test/harmonyos-location-lab/issues/new/choose)：提供工具、系统、HDC 和微信版本，以及操作与结果；设备系列可选，不需要具体型号或设备序列号。公开前遮住私人坐标、账号和个人路径。
+- [问题与建议入口](https://github.com/LokriWorks/harmonyos-location-lab/issues/new/choose)：提供工具、系统、HDC 和微信版本，以及操作与结果；设备系列可选，不需要具体型号或设备序列号。公开前遮住私人坐标、账号和个人路径。
 - 程序只在本机保存 HDC 路径，不保存坐标、路线或设备号，也不上传这些内容。
 
-项目由 [zoe2026test](https://github.com/zoe2026test) 开发和维护，采用 [MIT 许可证](LICENSE)。[第三方组件说明](THIRD-PARTY-NOTICES.md)。本项目与华为、微信没有隶属或背书关系。
+项目由 [LokriWorks](https://github.com/LokriWorks) 开发和维护，采用 [MIT 许可证](LICENSE)。[第三方组件说明](THIRD-PARTY-NOTICES.md)。本项目与华为、微信没有隶属或背书关系。
