@@ -1,5 +1,8 @@
 # 鸿蒙手机微信虚拟定位工具（USB 连接版）
 
+> [!NOTE]
+> **本项目持续更新中，将结合真机实践逐步完善功能与兼容性。** 已验证结果与实验功能会明确标注，欢迎通过 [Issues](https://github.com/zoe2026test/harmonyos-location-lab/issues/new/choose) 反馈测试情况、问题和建议。
+
 [![Tests](https://github.com/zoe2026test/harmonyos-location-lab/actions/workflows/test.yml/badge.svg)](https://github.com/zoe2026test/harmonyos-location-lab/actions/workflows/test.yml)
 [![Download](https://img.shields.io/badge/Windows-Download_EXE-176b8c)](https://github.com/zoe2026test/harmonyos-location-lab/releases/latest)
 [![MIT](https://img.shields.io/badge/license-MIT-147d75)](LICENSE)
